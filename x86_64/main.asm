@@ -10,8 +10,8 @@ section .data
 	a2: dq inside_word
 	a3: dq between_words
 	args_err_str: db 'Try calling ./main <file>', ENDL
-	open_err: db 'Not able to open file ', 0
-	mmap_err: db 'Not able call mmap', ENDL
+	open_err: db 'NOT ABLE TO OPEN FILE ', 0
+	mmap_err: db 'MMAP ERROR', ENDL
 
 section .text
 global _start
@@ -19,7 +19,7 @@ global _start
 ; rdi - file desc
 ; rsi - file ptr
 print_str:
-	xor rax, rax
+	mov rax, 1
 	xor rdx, rdx
 	.loop:
 		cmp byte[rsi+rdx], 0
@@ -33,6 +33,15 @@ print_str:
 ; rdi - file desc
 ; rsi - number
 print_uint:
+	mov rax, 0xA
+	lea rsi, [rsp-1]
+	push 0
+	sub rsp, 12
+	.loop:
+		
+
+	call print_str
+	add rsp, 20
 	ret
 
 ; This function represents the a0 state
@@ -73,17 +82,92 @@ new_word:
 	test sil, sil
 	jz end_automata
 	.body:
-
+	mov rcx, between_words
+	cmp sil, '0'
+	cmovb rcx, qword[a3]
+	cmp sil, '9'
+	cmovbe rcx, qword[a2]
+	cmp sil, 'A'
+	cmovb rcx, qword[a3]
+	cmp sil, 'Z'
+	cmovbe rcx, qword[a2]
+	cmp sil, 'a'
+	cmovb rcx, qword[a3]
+	cmp sil, 'z'
+	cmovbe rcx, qword[a2]
+	jmp [rcx]
 
 inside_word:
+	inc rdi
+	inc rdx
+	mov sil, [rdi]
+	test sil, sil
+	jz end_automata
+	.body:
+	mov rcx, between_words
+	cmp sil, '0'
+	cmovb rcx, qword[a3]
+	cmp sil, '9'
+	cmovbe rcx, qword[a1]
+	cmp sil, 'A'
+	cmovb rcx, qword[a3]
+	cmp sil, 'Z'
+	cmovbe rcx, qword[a1]
+	cmp sil, 'a'
+	cmovb rcx, qword[a3]
+	cmp sil, 'z'
+	cmovbe rcx, qword[a1]
+
+	jmp [rdx]
 
 between_words:
+	inc rdi
+	inc rdx
+  mov sil, [rdi]
+	test sil, sil
+	jz end_automata
+	.body:
+	mov rcx, between_words
+	cmp sil, '0'
+	cmovb rcx, qword[a3]
+	cmp sil, '9'
+	cmovbe rcx, qword[a1]
+	cmp sil, 'A'
+	cmovb rcx, qword[a3]
+	cmp sil, 'Z'
+	cmovbe rcx, qword[a1]
+	cmp sil, 'a'
+	cmovb rcx, qword[a3]
+	cmp sil, 'z'
+	cmovbe rcx, qword[a1]
+
+	jmp [rcx]
+
+; rdi - Exit code
+exit:
+	mov rax, 60
+	syscall
 
 _start:
 	cmp byte[rsp], 2
-	jb short .have_arg
-
+	jae short .have_arg
+	mov rsi, args_err_str
+	mov rdi, STDERR_FILENO
+	call print_str
+	mov rdi, 1
+	call exit
 	.have_arg:
-	mov rax, 60
-	xor rdi, rdi
+	xor rdx, rdx
+	mov rdi, [rsp+16]
+	mov rsi, O_RDONLY
 	syscall
+	cmp rax, -1
+	jne .mmap:
+	.file_error:
+	mov rsi, open_err
+	mov rdi, STDERR_FILENO
+	call print_str
+	.mmap:
+	.end:
+	xor rdi, rdi
+	call exit
