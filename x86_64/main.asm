@@ -2,15 +2,33 @@ bits 64
 %define STDERR_FILENO 0x2
 %define O_RDONLY 0x0
 %define PROT_READ 0x1
+%define MAP_SHARED 0x1
 %define ENDL 0xA, 0x0
 %assign MMAP_SIZE 4*1024
+
+%macro close_fp 1
+	%if %1 != rdi
+		mov rdi, %1
+	%endif
+	mov rax, 3
+	syscall
+%endmacro
+
+%macro unmap 1
+	%if %1 != rdi
+		mov rdi, %1
+	%endif
+	mov rax, 11
+	mov rsi, MMAP_SIZE
+	syscall
+%endmacro
 
 section .data
 	a1: dq new_word
 	a2: dq inside_word
 	a3: dq between_words
 	args_err_str: db 'Try calling ./main <file>', ENDL
-	open_err: db 'NOT ABLE TO OPEN FILE ', 0
+	open_err: db 'NOT ABLE TO OPEN FILE: ', 0
 	mmap_err: db 'MMAP ERROR', ENDL
 
 section .text
@@ -95,7 +113,8 @@ new_word:
 	cmovb rcx, qword[a3]
 	cmp sil, 'z'
 	cmovbe rcx, qword[a2]
-	jmp [rcx]
+	
+	jmp rcx
 
 inside_word:
 	inc rdi
@@ -118,7 +137,7 @@ inside_word:
 	cmp sil, 'z'
 	cmovbe rcx, qword[a1]
 
-	jmp [rdx]
+	jmp rdx
 
 between_words:
 	inc rdi
@@ -141,7 +160,7 @@ between_words:
 	cmp sil, 'z'
 	cmovbe rcx, qword[a1]
 
-	jmp [rcx]
+	jmp rcx
 
 ; rdi - Exit code
 exit:
@@ -161,13 +180,36 @@ _start:
 	mov rdi, [rsp+16]
 	mov rsi, O_RDONLY
 	syscall
-	cmp rax, -1
-	jne .mmap:
+	test rax, rax
+	jns .mmap
 	.file_error:
 	mov rsi, open_err
 	mov rdi, STDERR_FILENO
 	call print_str
+	mov rsi, [rsp+16]
+	mov rdi, STDERR_FILENO
+	call print_str
+	push 0
+	mov byte[rsp], 0xA
+	mov rsi, rsp
+	mov rdi, STDERR_FILENO
+	call print_str
+	add rsp, 8
+	mov rdi, 1
+	call exit
 	.mmap:
+	push rax
+	xor rdi, rdi
+	mov rsi, MMAP_SIZE
+	xor r9, r9
+	mov rdx, PROT_READ
+	mov r8, [rsp]
+  mov r10, MAP_SHARED
+	syscall
+	test rax, rax
+	jns .end
+	.mmap_err:
+			
 	.end:
 	xor rdi, rdi
 	call exit
