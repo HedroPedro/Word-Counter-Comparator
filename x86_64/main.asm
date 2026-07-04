@@ -99,17 +99,17 @@ automata:
 	.body:
 		mov rcx, between_words
 		cmp sil, '0'
-		cmovb rcx, qword[a3]
+		cmovae rcx, qword[a1]
 		cmp sil, '9'
-		cmovbe rcx, qword[a1]
+		cmova rcx, qword[a3]
 		cmp sil, 'A'
-		cmovb rcx, qword[a3]
+		cmovae rcx, qword[a1]
 		cmp sil, 'Z'
-		cmovbe rcx, qword[a1]
+		cmova rcx, qword[a3]
 		cmp sil, 'a'
-		cmovbe rcx, qword[a3]
+		cmovae rcx, qword[a1]
 		cmp sil, 'z'
-		cmovbe rcx, qword[a1]
+		cmova rcx, qword[a1]
 
 		jmp rcx
 end_automata:
@@ -126,17 +126,17 @@ new_word:
 	.body:
 	mov rcx, between_words
 	cmp sil, '0'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a2]
 	cmp sil, '9'
-	cmovbe rcx, qword[a2]
+	cmova rcx, qword[a3]
 	cmp sil, 'A'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a2]
 	cmp sil, 'Z'
-	cmovbe rcx, qword[a2]
+	cmova rcx, qword[a3]
 	cmp sil, 'a'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a2]
 	cmp sil, 'z'
-	cmovbe rcx, qword[a2]
+	cmova rcx, qword[a3]
 	
 	jmp rcx
 
@@ -149,23 +149,17 @@ inside_word:
 	.body:
 	mov rcx, between_words
 	cmp sil, '0'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a2]
 	cmp sil, '9'
-	cmovbe rcx, qword[a2]
+	cmova rcx, qword[a3]
 	cmp sil, 'A'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a2]
 	cmp sil, 'Z'
-	cmovbe rcx, qword[a2]
+	cmova rcx, qword[a3]
 	cmp sil, 'a'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a2]
 	cmp sil, 'z'
-	cmovbe rcx, qword[a2]
-	cmp sil, ' '
-	cmove rcx, qword[a3]
-	cmp sil, 13
-	cmove rcx, qword[a3]
-	cmp sil, 9
-	cmove rcx, qword[a3]
+	cmova rcx, qword[a3]
 
 	jmp rcx
 
@@ -178,17 +172,17 @@ between_words:
 	.body:
 	mov rcx, between_words
 	cmp sil, '0'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a1]
 	cmp sil, '9'
-	cmovbe rcx, qword[a1]
+	cmova rcx, qword[a3]
 	cmp sil, 'A'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a1]
 	cmp sil, 'Z'
-	cmovbe rcx, qword[a1]
+	cmova rcx, qword[a3]
 	cmp sil, 'a'
-	cmovb rcx, qword[a3]
+	cmovae rcx, qword[a1]
 	cmp sil, 'z'
-	cmovbe rcx, qword[a1]
+	cmova rcx, qword[a3]
 
 	jmp rcx
 
