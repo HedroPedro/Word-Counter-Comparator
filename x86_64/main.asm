@@ -109,7 +109,7 @@ automata:
 		cmp sil, 'a'
 		cmovae rcx, qword[a1]
 		cmp sil, 'z'
-		cmova rcx, qword[a1]
+		cmova rcx, qword[a3]
 
 		jmp rcx
 end_automata:
