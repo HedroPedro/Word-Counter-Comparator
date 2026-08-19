@@ -1,1 +1,89 @@
-
+AUTOMATA TITLE 'WORD/CHAR COUNTER'
+AUTOMATA CSECT
+*--------------------------------------------------------------------*
+*        startup                                                     *
+*--------------------------------------------------------------------*
+BEGIN    SAVE  (R14,R12)
+         USING BEGIN,R15
+         ST    R13,SAVEAREA+4
+         LA    R13,SAVEAREA
+         OPEN  (INFILE,(INPUT))
+         SR    R6,R6 NUMBER OF CHARACTER
+         SR    R7,R7 NUMBER OF WORD
+         EJECT
+*--------------------------------------------------------------------*
+*        program code                                                *
+*--------------------------------------------------------------------*
+LOOP     GET   INFILE
+         LR    R3,R1 
+         LR    R4,R3 
+         LA    R5,80 LREC = 80
+         LA    R8,BET_TAB
+*--------------------------------------------------------------------*
+*        table parsing                                               *
+*--------------------------------------------------------------------*
+LOOP_TRT LTR   R5,R5 HAS ANY MORE CONTENT?
+         BZ    LOOP
+         EX    R5,DYNA_TRT
+         EJECT
+DYNA_TRT TRT   0(0,R4),(R8)
+*--------------------------------------------------------------------*
+*        exit                                                        *
+*--------------------------------------------------------------------*
+EOF_EXIT CLOSE  (INFILE)
+         L      13,SAVEAREA+4
+         SR     R15,R15
+         RETURN (R14,R12),RC=(R15)           
+         EJECT
+*--------------------------------------------------------------------*
+*        storage and constant definitions                            *
+*--------------------------------------------------------------------*
+SAVEAREA DS    18F
+INFILE   DCB   DDNAME=INFILE,                                          X
+               DSORG=PS,                                               X
+               MACRF=(GL),                                             X
+               EODAD=EOF_EXIT
+OUTFILE  DCB   DDNAME=OUTFILE,                                         X
+               DSORG=PS,                                               X
+               MACRF=PM                                                X
+               RECFM=FB                                                X
+               LRECL=80
+         LTORG
+         EJECT
+*--------------------------------------------------------------------*
+*        tables                                                      *
+*--------------------------------------------------------------------*
+BET_TAB  DC    X256'00'
+         ORG   BET_TAB+C'a'
+         DC    X9'01'
+         ORG   BET_TAB+C'j'
+         DC    X9'01'
+         ORG   BET_TAB+C's'
+         DC    X8'01'
+         ORG   BET_TAB+C'A'
+         DC    X9'01'
+         ORG   BET_TAB+C'J'
+         DC    X9'01'
+         ORG   BET_TAB+C'S'
+         DC    X8'01'
+         ORG   BET_TAB+C'0'
+         DC    X10'01'
+         ORG   
+IN_TAB   DC    X256'01'
+         ORG   IN_TAB+C'a'
+         DC    X9'00'
+         ORG   IN_TAB+C'j'
+         DC    X9'00'
+         ORG   IN_TAB+C's'
+         DC    XL8'00'
+         ORG   IN_TAB+C'A'
+         DC    X9'00'
+         ORG   IN_TAB+C'J'
+         DC    X9'00'
+         ORG   IN_TAB+C'S'
+         DC    X8'00'
+         ORG   IN_TAB+C'0'
+         DC    X10'00'
+         ORG   
+         YREGS
+         END   AUTOMATA                                                
